@@ -119,10 +119,13 @@ function buildEditor(container) {
 
 	const sampler = new Tone.Sampler({
 		urls: {
+			"A5": "A5.mp3",
 			"C4": "C4.mp3",
 			"D#4": "Ds4.mp3",
 			"F#4": "Fs4.mp3",
 			"A4": "A4.mp3",
+			"C3": "C3.mp3",
+			"C2": "C2.mp3",
 		},
 		release: 1,
 		baseUrl: "https://tonejs.github.io/audio/salamander/",
@@ -179,6 +182,10 @@ function buildEditor(container) {
 	function renderBoard({ columnCount }) {
 		board.innerHTML = '';
 		appendColumnsToBoard(columnCount);
+		storeLatestColumnNodes();
+	}
+
+	function storeLatestColumnNodes() {
 		columnNodes = board.querySelectorAll('.column');
 	}
 
@@ -192,10 +199,22 @@ function buildEditor(container) {
 	}
 
 	function clearSong() {
+		resetSongBeats();
+		uncheckAllCheckboxes();
+		resetAllNoteNames();
+	}
+
+	function resetSongBeats() {
 		songBeats = restBeats(songBeats.length);
+	}
+
+	function uncheckAllCheckboxes() {
 		board.querySelectorAll('.note-name-checkbox').forEach(checkbox => {
 			checkbox.checked = false;
 		});
+	}
+
+	function resetAllNoteNames() {
 		board.querySelectorAll('.note-name').forEach(noteNameContainer => {
 			const noteNameWithoutDuration = noteNameContainer.innerText.split('(')[0];
 			noteNameContainer.innerText = noteNameWithoutDuration; 
@@ -337,11 +356,12 @@ function buildEditor(container) {
 
 	function setSong(importedSong) {
 		clearSong();
-		setTempo(importedSong.secondsPerBeat);
-		beatCount = importedSong.beats.length;
+		const copyOfSong = JSON.parse(JSON.stringify(importedSong));
+		setTempo(copyOfSong.secondsPerBeat);
+		beatCount = copyOfSong.beats.length;
 
-		renderBoard({ columnCount: importedSong.beats.length });
-		[...importedSong.beats].forEach((beat, i) => {
+		renderBoard({ columnCount: copyOfSong.beats.length });
+		copyOfSong.beats.forEach((beat, i) => {
 			songBeats[i] = beat;
 		});
 
@@ -385,14 +405,12 @@ function buildEditor(container) {
 		document.execCommand('copy');
 	}
 
-	function clearColumnHighlights() {
-		board.querySelectorAll('.column--highlighted').forEach(column => {
-			column.classList.remove('column--highlighted');
-		});
+	function clearHighlightedColumn() {
+		board.querySelector('.column--highlighted')?.classList.remove('column--highlighted');
 	}
 
 	function highlightColumn(n) {
-		clearColumnHighlights();
+		clearHighlightedColumn();
 		columnNodes[n].classList.add('column--highlighted');
 	}
 
@@ -421,7 +439,7 @@ function buildEditor(container) {
 	}
 	function stop() {
 		clearInterval(interval);
-		clearColumnHighlights();
+		clearHighlightedColumn();
 		currentBeat = 0;
 	}
 	function goToBeat(n) {
