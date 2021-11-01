@@ -116,6 +116,8 @@ function buildEditor(container) {
 	let songBeats = restBeats(beatCount);
 	let noteDuration = 1;
 	let columnNodes;
+	let columnsPerPage;
+	const columnWidth = 50;
 
 	const sampler = new Tone.Sampler({
 		urls: {
@@ -136,15 +138,22 @@ function buildEditor(container) {
 	].reverse();
 
 	function scrollToBeat(beatNumber) {
-		const columnWidth = 50;
-		const offset = 2;
-		const boardWidth = board.getBoundingClientRect().width;
-		const columnsPerPage = Math.floor(boardWidth / columnWidth - offset);
 		if (beatNumber % columnsPerPage === 0) {
 			board.scrollTo({
 				left: beatNumber * columnWidth,
 			});
 		}
+	}
+
+	function getColumnsPerPage() {
+		const offset = 2;
+		const boardWidth = board.getBoundingClientRect().width;
+		const columnsPerPage = Math.floor(boardWidth / columnWidth - offset);
+		return columnsPerPage;
+	}
+
+	function updateColumnsPerPage() {
+		columnsPerPage = getColumnsPerPage();
 	}
 
 	function updateSongLength(newBeatCount) {
@@ -490,6 +499,7 @@ function buildEditor(container) {
 		document.querySelector('.sample-big-shot').addEventListener('click', function() {
 			setSong(bigShot);
 		});
+		window.addEventListener('resize', updateColumnsPerPage);
 	}
 
 	function getSongBeats() {
@@ -498,6 +508,7 @@ function buildEditor(container) {
 
 	function init() {
 		renderBoard({ columnCount: beatCount });
+		updateColumnsPerPage();
 		attachListeners();
 	}
 
