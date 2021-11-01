@@ -105,15 +105,15 @@ input[type="number"] {
 
 
 
-function buildEditor(container) {
+function buildEditor(container, optionalSongImport) {
 	const board = createBoard();
 
 	let currentBeat = 0;
-	let secondsPerBeat = 0.2;
+	let secondsPerBeat = optionalSongImport?.secondsPerBeat || 0.2;
 	let interval;
-	let beatCount = 50;
+	let beatCount = optionalSongImport?.beats.length || 50;
 	let octaves = [5, 4, 3, 2];
-	let songBeats = restBeats(beatCount);
+	let songBeats = optionalSongImport?.beats || restBeats(beatCount);
 	let noteDuration = 1;
 	let columnNodes;
 	let columnsPerPage;
@@ -226,7 +226,7 @@ function buildEditor(container) {
 	function resetAllNoteNames() {
 		board.querySelectorAll('.note-name').forEach(noteNameContainer => {
 			const noteNameWithoutDuration = noteNameContainer.innerText.split('(')[0];
-			noteNameContainer.innerText = noteNameWithoutDuration; 
+			noteNameContainer.innerText = noteNameWithoutDuration;
 		});
 	}
 
@@ -507,7 +507,7 @@ function buildEditor(container) {
 	}
 
 	function init() {
-		renderBoard({ columnCount: beatCount });
+		setSong({ secondsPerBeat, beats: songBeats });
 		updateColumnsPerPage();
 		attachListeners();
 	}
@@ -525,8 +525,7 @@ function buildEditor(container) {
 	};
 }
 
-const editor = buildEditor(document.querySelector('.editor'));
-editor.setSong(minuetInG);
+const editor = buildEditor(document.querySelector('.editor'), minuetInG);
 
 </script>
 </body>
