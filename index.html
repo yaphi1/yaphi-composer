@@ -225,8 +225,8 @@ function buildEditor(container, optionalSongImport) {
 
 	function resetAllNoteNames() {
 		board.querySelectorAll('.note-name').forEach(noteNameContainer => {
-			const noteNameWithoutDuration = noteNameContainer.innerText.split('(')[0];
-			noteNameContainer.innerText = noteNameWithoutDuration;
+			const noteName = noteNameContainer.dataset.noteName;
+			noteNameContainer.textContent = noteName;
 		});
 	}
 
@@ -254,8 +254,8 @@ function buildEditor(container, optionalSongImport) {
 
 	function placeNotesInOctave(notes, column, octave) {
 		const { columnNumber } = column.dataset;
-		notes.forEach(note => {
-			const noteButton = buildNoteButton(note, columnNumber, octave);
+		notes.forEach(noteName => {
+			const noteButton = buildNoteButton(noteName, columnNumber, octave);
 			column.appendChild(noteButton);
 		});
 	}
@@ -264,7 +264,7 @@ function buildEditor(container, optionalSongImport) {
 		const columnButtonContainer = document.createElement('div');
 		columnButtonContainer.classList.add('column-button-container');
 		const columnButton = document.createElement('button');
-		columnButton.innerText = columnNumber;
+		columnButton.textContent = columnNumber;
 		columnButton.addEventListener('click', () => {
 			goToBeat(columnNumber);
 		});
@@ -273,10 +273,11 @@ function buildEditor(container, optionalSongImport) {
 		return columnButtonContainer;
 	}
 
-	function buildNoteButton(note, beatNumber, octave) {
-		const noteButton = generateNoteButtonHtml(note, beatNumber, octave);
+	function buildNoteButton(noteName, beatNumber, octave) {
+		const noteButton = generateNoteButtonHtml(noteName, beatNumber, octave);
 		const checkbox = noteButton.querySelector('input');
 		const noteNameContainer = noteButton.querySelector('.note-name');
+		noteNameContainer.dataset.noteName = noteName;
 
 		checkbox.addEventListener('change', function() {
 			toggleNoteCheckbox(checkbox, noteNameContainer);
@@ -290,13 +291,13 @@ function buildEditor(container, optionalSongImport) {
 		column.appendChild(columnButton);
 	}
 
-	function generateNoteButtonHtml(note, beatNumber, octave) {
+	function generateNoteButtonHtml(noteName, beatNumber, octave) {
 		const noteButton = document.createElement('div');
 		noteButton.classList.add('note-button');
 		noteButton.innerHTML = `
 			<label>
-				<input class="note-name-checkbox" type="checkbox" value="${note}${octave}" data-beat-number="${beatNumber}" data-note-name="${note}" data-selected-duration="1">
-				<span class="note-name">${note}</span>
+				<input class="note-name-checkbox" type="checkbox" value="${noteName}${octave}" data-beat-number="${beatNumber}" data-note-name="${noteName}" data-selected-duration="1">
+				<span class="note-name">${noteName}</span>
 			</label>
 		`;
 		return noteButton;
@@ -326,7 +327,7 @@ function buildEditor(container, optionalSongImport) {
 		beat[currentChord].notes = deduplicate([...existingNotes, changedNote]);
 		beat[currentChord].durationInBeats = noteDuration;
 		checkbox.dataset.selectedDuration = noteDuration;
-		noteNameContainer.innerText = `${noteName}(${noteDuration})`;
+		noteNameContainer.textContent = `${noteName}(${noteDuration})`;
 	}
 
 	function uncheckNoteCheckbox(checkbox, noteNameContainer) {
@@ -337,7 +338,7 @@ function buildEditor(container, optionalSongImport) {
 		const existingNotes = [...beat[currentChord].notes];
 		beat[currentChord].notes = existingNotes.filter(note => note !== changedNote);
 		songBeats[beatNumber] = removeEmptyNonRestChords(beat);
-		noteNameContainer.innerText = noteName;
+		noteNameContainer.textContent = noteName;
 	}
 
 	function deduplicate(array) {
@@ -399,7 +400,7 @@ function buildEditor(container, optionalSongImport) {
 		const duration = chord.durationInBeats;
 		checkbox.checked = true;
 		checkbox.dataset.selectedDuration = duration;
-		label.innerText = `${noteName}(${duration})`;
+		label.textContent = `${noteName}(${duration})`;
 	}
 
 	function setTempo(tempo) {
@@ -475,8 +476,8 @@ function buildEditor(container, optionalSongImport) {
 		});
 		document.querySelector('.export').addEventListener('click', function() {
 			exportToClipboard();
-			this.innerText = 'Copied!';
-			setTimeout(() => { this.innerText = 'Export'; }, 1000);
+			this.textContent = 'Copied!';
+			setTimeout(() => { this.textContent = 'Export'; }, 1000);
 		});
 		document.querySelector('.note-duration').addEventListener('input', function() {
 			noteDuration = Number(this.value);
