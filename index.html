@@ -425,6 +425,7 @@ function buildEditor(container, optionalSongImport) {
 		isPlaying = true;
 		clearInterval(interval);
 		interval = setInterval(playNextBeat, secondsPerBeat * 1000);
+		updatePlayButtonText('Pause');
 	}
 
 	function playNextBeat() {
@@ -445,22 +446,21 @@ function buildEditor(container, optionalSongImport) {
 	function pause() {
 		isPlaying = false;
 		clearInterval(interval);
+		updatePlayButtonText('Play');
 	}
-	function togglePlayPause(button) {
-		if (isPlaying) {
-			pause();
-			button.textContent = 'Play';
-		}
-		else {
-			play();
-			button.textContent = 'Pause';
-		}
+	function togglePlayPause() {
+		if (isPlaying) { pause(); }
+		else { play(); }
+	}
+	function updatePlayButtonText(text) {
+		document.querySelector('.play').textContent = text;
 	}
 	function stop() {
 		isPlaying = false;
 		clearInterval(interval);
 		clearHighlightedColumn();
 		currentBeat = 0;
+		updatePlayButtonText('Play');
 	}
 	function goToBeat(n) {
 		highlightColumn(n);
@@ -471,12 +471,8 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function attachListeners() {
-		document.querySelector('.play').addEventListener('click', function() {
-			togglePlayPause(this);
-		});
-		document.querySelector('.stop').addEventListener('click', () => {
-			stop();
-		});
+		document.querySelector('.play').addEventListener('click', togglePlayPause);
+		document.querySelector('.stop').addEventListener('click', stop);
 		document.querySelector('.clear').addEventListener('click', () => {
 			if (isPlaying) { pause(); }
 			const confirmation = confirm('Are you sure you want to erase the song?');
