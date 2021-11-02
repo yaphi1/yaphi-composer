@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-.editor {}
 .board {
 	display: flex;
 	overflow: scroll;
@@ -71,7 +70,6 @@ input[type="number"] {
 </div>
 <div class="controls">
 	<button class="play">Play</button>
-	<button class="pause">Pause</button>
 	<button class="stop">Stop</button>
 	<button class="clear">Clear</button>
 	<button class="export">Export</button>
@@ -106,6 +104,7 @@ input[type="number"] {
 
 function buildEditor(container, optionalSongImport) {
 	const board = createBoard();
+	let isPlaying = false;
 	let currentBeat = 0;
 	let secondsPerBeat = optionalSongImport?.secondsPerBeat || 0.2;
 	let interval;
@@ -422,6 +421,8 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function play() {
+		if (isPlaying) { return; }
+		isPlaying = true;
 		clearInterval(interval);
 		interval = setInterval(playNextBeat, secondsPerBeat * 1000);
 	}
@@ -442,9 +443,21 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function pause() {
+		isPlaying = false;
 		clearInterval(interval);
 	}
+	function togglePlayPause(button) {
+		if (isPlaying) {
+			pause();
+			button.textContent = 'Play';
+		}
+		else {
+			play();
+			button.textContent = 'Pause';
+		}
+	}
 	function stop() {
+		isPlaying = false;
 		clearInterval(interval);
 		clearHighlightedColumn();
 		currentBeat = 0;
@@ -458,16 +471,14 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function attachListeners() {
-		document.querySelector('.play').addEventListener('click', () => {
-			play();
-		});
-		document.querySelector('.pause').addEventListener('click', () => {
-			pause();
+		document.querySelector('.play').addEventListener('click', function() {
+			togglePlayPause(this);
 		});
 		document.querySelector('.stop').addEventListener('click', () => {
 			stop();
 		});
 		document.querySelector('.clear').addEventListener('click', () => {
+			if (isPlaying) { pause(); }
 			const confirmation = confirm('Are you sure you want to erase the song?');
 			if (confirmation) { clearSong(); }
 		});
@@ -486,15 +497,19 @@ function buildEditor(container, optionalSongImport) {
 			updateSongLength(this.value);
 		});
 		document.querySelector('.sample-minuet').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(minuetInG);
 		});
 		document.querySelector('.sample-smash').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(smash);
 		});
 		document.querySelector('.sample-smash-extra').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(smashExtra);
 		});
 		document.querySelector('.sample-big-shot').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(bigShot);
 		});
 		window.addEventListener('resize', updateColumnsPerPage);
