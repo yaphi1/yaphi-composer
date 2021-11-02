@@ -22,7 +22,6 @@
 .column--highlighted {
 	background: #eee;
 }
-.column-button-container {}
 .column-button {
 	cursor: pointer;
 	width: 100%;
@@ -107,7 +106,6 @@ input[type="number"] {
 
 function buildEditor(container, optionalSongImport) {
 	const board = createBoard();
-
 	let currentBeat = 0;
 	let secondsPerBeat = optionalSongImport?.secondsPerBeat || 0.2;
 	let interval;
@@ -189,22 +187,45 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function renderBoard({ columnCount }) {
-		board.innerHTML = '';
-		appendColumnsToBoard(columnCount);
+		board.innerHTML = buildColumns(columnCount);
 		storeLatestColumnNodes();
+		attachBoardInteractions();
+	}
+
+	function attachBoardInteractions() {
+		attachCheckboxInteractions();
+		attachColumnButtonInteractions();
+	}
+
+	function attachCheckboxInteractions() {
+		board.addEventListener('change', (e) => {
+			const checkbox = e.target;
+			const noteNameContainer = e.target.parentElement.querySelector('.note-name');
+			toggleNoteCheckbox(checkbox, noteNameContainer);
+		});
+	}
+
+	function attachColumnButtonInteractions() {
+		board.addEventListener('click', (e) => {
+			const clickedElement = e.target;
+			const isColumnButton = clickedElement.classList.contains('column-button');
+			if (isColumnButton) {
+				const columnNumber = clickedElement.dataset.columnNumber;
+				goToBeat(columnNumber);
+			}
+		});
 	}
 
 	function storeLatestColumnNodes() {
 		columnNodes = board.querySelectorAll('.column');
 	}
 
-	function appendColumnsToBoard(columnCount) {
-		const fragment = new DocumentFragment();
+	function buildColumns(columnCount) {
+		const columns = [];
 		for (let i=0; i<columnCount; i++) {
-			const column = buildColumn(notes, i);
-			fragment.appendChild(column);
+			columns.push(buildColumn(notes, i));
 		}
-		board.appendChild(fragment);
+		return columns.join('');
 	}
 
 	function clearSong() {
@@ -231,73 +252,49 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function buildColumn(notes, columnNumber) {
-		const column = generateColumnHtml(columnNumber);
-
-		placeNotesInColumn(notes, column);
-		placeColumnButton(column);
-
+		const column = `
+			<div class="column" data-column-number="${columnNumber}">
+				${placeNotesInColumn(notes, columnNumber)}
+				${buildColumnButton(columnNumber)}
+			</div>
+		`;
 		return column;
 	}
 
-	function generateColumnHtml(columnNumber) {
-		const column = document.createElement('div');
-		column.classList.add('column');
-		column.dataset.columnNumber = columnNumber;
-		return column;
-	}
-
-	function placeNotesInColumn(notes, column) {
+	function placeNotesInColumn(notes, columnNumber) {
+		const filledOctaves = [];
 		octaves.forEach(octave => {
-			placeNotesInOctave(notes, column, octave);
+			const filledOctave = placeNotesInOctave(notes, columnNumber, octave);
+			filledOctaves.push(filledOctave);
 		});
+		const notesInColumn = filledOctaves.join('');
+		return notesInColumn;
 	}
 
-	function placeNotesInOctave(notes, column, octave) {
-		const { columnNumber } = column.dataset;
+	function placeNotesInOctave(notes, columnNumber, octave) {
+		const noteButtons = [];
 		notes.forEach(noteName => {
 			const noteButton = buildNoteButton(noteName, columnNumber, octave);
-			column.appendChild(noteButton);
+			noteButtons.push(noteButton);
 		});
+		const notesInOctave = noteButtons.join('');
+		return notesInOctave;
 	}
 
 	function buildColumnButton(columnNumber) {
-		const columnButtonContainer = document.createElement('div');
-		columnButtonContainer.classList.add('column-button-container');
-		const columnButton = document.createElement('button');
-		columnButton.textContent = columnNumber;
-		columnButton.addEventListener('click', () => {
-			goToBeat(columnNumber);
-		});
-		columnButton.classList.add('column-button');
-		columnButtonContainer.appendChild(columnButton);
-		return columnButtonContainer;
+		const columnButton = `
+			<button class="column-button" data-column-number="${columnNumber}">
+				${columnNumber}
+			</button>
+		`;
+		return columnButton;
 	}
 
 	function buildNoteButton(noteName, beatNumber, octave) {
-		const noteButton = generateNoteButtonHtml(noteName, beatNumber, octave);
-		const checkbox = noteButton.querySelector('input');
-		const noteNameContainer = noteButton.querySelector('.note-name');
-		noteNameContainer.dataset.noteName = noteName;
-
-		checkbox.addEventListener('change', function() {
-			toggleNoteCheckbox(checkbox, noteNameContainer);
-		});
-		return noteButton;
-	}
-
-	function placeColumnButton(column) {
-		const { columnNumber } = column.dataset;
-		const columnButton = buildColumnButton(columnNumber);
-		column.appendChild(columnButton);
-	}
-
-	function generateNoteButtonHtml(noteName, beatNumber, octave) {
-		const noteButton = document.createElement('div');
-		noteButton.classList.add('note-button');
-		noteButton.innerHTML = `
-			<label>
+		const noteButton = `
+			<label class="note-button">
 				<input class="note-name-checkbox" type="checkbox" value="${noteName}${octave}" data-beat-number="${beatNumber}" data-note-name="${noteName}" data-selected-duration="1">
-				<span class="note-name">${noteName}</span>
+				<span class="note-name" data-note-name="${noteName}">${noteName}</span>
 			</label>
 		`;
 		return noteButton;
