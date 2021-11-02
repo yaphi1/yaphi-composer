@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-.editor {}
 .board {
 	display: flex;
 	overflow: scroll;
@@ -22,7 +21,6 @@
 .column--highlighted {
 	background: #eee;
 }
-.column-button-container {}
 .column-button {
 	cursor: pointer;
 	width: 100%;
@@ -72,7 +70,6 @@ input[type="number"] {
 </div>
 <div class="controls">
 	<button class="play">Play</button>
-	<button class="pause">Pause</button>
 	<button class="stop">Stop</button>
 	<button class="clear">Clear</button>
 	<button class="export">Export</button>
@@ -105,15 +102,15 @@ input[type="number"] {
 
 
 
-function buildEditor(container) {
+function buildEditor(container, optionalSongImport) {
 	const board = createBoard();
-
+	let isPlaying = false;
 	let currentBeat = 0;
-	let secondsPerBeat = 0.2;
+	let secondsPerBeat = optionalSongImport?.secondsPerBeat || 0.2;
 	let interval;
-	let beatCount = 50;
+	let beatCount = optionalSongImport?.beats.length || 50;
 	let octaves = [5, 4, 3, 2];
-	let songBeats = restBeats(beatCount);
+	let songBeats = optionalSongImport?.beats || restBeats(beatCount);
 	let noteDuration = 1;
 	let columnNodes;
 	let columnsPerPage;
@@ -189,22 +186,45 @@ function buildEditor(container) {
 	}
 
 	function renderBoard({ columnCount }) {
-		board.innerHTML = '';
-		appendColumnsToBoard(columnCount);
+		board.innerHTML = buildColumns(columnCount);
 		storeLatestColumnNodes();
+		attachBoardInteractions();
+	}
+
+	function attachBoardInteractions() {
+		attachCheckboxInteractions();
+		attachColumnButtonInteractions();
+	}
+
+	function attachCheckboxInteractions() {
+		board.addEventListener('change', (e) => {
+			const checkbox = e.target;
+			const noteNameContainer = e.target.parentElement.querySelector('.note-name');
+			toggleNoteCheckbox(checkbox, noteNameContainer);
+		});
+	}
+
+	function attachColumnButtonInteractions() {
+		board.addEventListener('click', (e) => {
+			const clickedElement = e.target;
+			const isColumnButton = clickedElement.classList.contains('column-button');
+			if (isColumnButton) {
+				const columnNumber = clickedElement.dataset.columnNumber;
+				goToBeat(columnNumber);
+			}
+		});
 	}
 
 	function storeLatestColumnNodes() {
 		columnNodes = board.querySelectorAll('.column');
 	}
 
-	function appendColumnsToBoard(columnCount) {
-		const fragment = new DocumentFragment();
+	function buildColumns(columnCount) {
+		const columns = [];
 		for (let i=0; i<columnCount; i++) {
-			const column = buildColumn(notes, i);
-			fragment.appendChild(column);
+			columns.push(buildColumn(notes, i));
 		}
-		board.appendChild(fragment);
+		return columns.join('');
 	}
 
 	function clearSong() {
@@ -225,78 +245,55 @@ function buildEditor(container) {
 
 	function resetAllNoteNames() {
 		board.querySelectorAll('.note-name').forEach(noteNameContainer => {
-			const noteNameWithoutDuration = noteNameContainer.innerText.split('(')[0];
-			noteNameContainer.innerText = noteNameWithoutDuration; 
+			const noteName = noteNameContainer.dataset.noteName;
+			noteNameContainer.textContent = noteName;
 		});
 	}
 
 	function buildColumn(notes, columnNumber) {
-		const column = generateColumnHtml(columnNumber);
-
-		placeNotesInColumn(notes, column);
-		placeColumnButton(column);
-
+		const column = `
+			<div class="column" data-column-number="${columnNumber}">
+				${placeNotesInColumn(notes, columnNumber)}
+				${buildColumnButton(columnNumber)}
+			</div>
+		`;
 		return column;
 	}
 
-	function generateColumnHtml(columnNumber) {
-		const column = document.createElement('div');
-		column.classList.add('column');
-		column.dataset.columnNumber = columnNumber;
-		return column;
-	}
-
-	function placeNotesInColumn(notes, column) {
+	function placeNotesInColumn(notes, columnNumber) {
+		const filledOctaves = [];
 		octaves.forEach(octave => {
-			placeNotesInOctave(notes, column, octave);
+			const filledOctave = placeNotesInOctave(notes, columnNumber, octave);
+			filledOctaves.push(filledOctave);
 		});
+		const notesInColumn = filledOctaves.join('');
+		return notesInColumn;
 	}
 
-	function placeNotesInOctave(notes, column, octave) {
-		const { columnNumber } = column.dataset;
-		notes.forEach(note => {
-			const noteButton = buildNoteButton(note, columnNumber, octave);
-			column.appendChild(noteButton);
+	function placeNotesInOctave(notes, columnNumber, octave) {
+		const noteButtons = [];
+		notes.forEach(noteName => {
+			const noteButton = buildNoteButton(noteName, columnNumber, octave);
+			noteButtons.push(noteButton);
 		});
+		const notesInOctave = noteButtons.join('');
+		return notesInOctave;
 	}
 
 	function buildColumnButton(columnNumber) {
-		const columnButtonContainer = document.createElement('div');
-		columnButtonContainer.classList.add('column-button-container');
-		const columnButton = document.createElement('button');
-		columnButton.innerText = columnNumber;
-		columnButton.addEventListener('click', () => {
-			goToBeat(columnNumber);
-		});
-		columnButton.classList.add('column-button');
-		columnButtonContainer.appendChild(columnButton);
-		return columnButtonContainer;
+		const columnButton = `
+			<button class="column-button" data-column-number="${columnNumber}">
+				${columnNumber}
+			</button>
+		`;
+		return columnButton;
 	}
 
-	function buildNoteButton(note, beatNumber, octave) {
-		const noteButton = generateNoteButtonHtml(note, beatNumber, octave);
-		const checkbox = noteButton.querySelector('input');
-		const noteNameContainer = noteButton.querySelector('.note-name');
-
-		checkbox.addEventListener('change', function() {
-			toggleNoteCheckbox(checkbox, noteNameContainer);
-		});
-		return noteButton;
-	}
-
-	function placeColumnButton(column) {
-		const { columnNumber } = column.dataset;
-		const columnButton = buildColumnButton(columnNumber);
-		column.appendChild(columnButton);
-	}
-
-	function generateNoteButtonHtml(note, beatNumber, octave) {
-		const noteButton = document.createElement('div');
-		noteButton.classList.add('note-button');
-		noteButton.innerHTML = `
-			<label>
-				<input class="note-name-checkbox" type="checkbox" value="${note}${octave}" data-beat-number="${beatNumber}" data-note-name="${note}" data-selected-duration="1">
-				<span class="note-name">${note}</span>
+	function buildNoteButton(noteName, beatNumber, octave) {
+		const noteButton = `
+			<label class="note-button">
+				<input class="note-name-checkbox" type="checkbox" value="${noteName}${octave}" data-beat-number="${beatNumber}" data-note-name="${noteName}" data-selected-duration="1">
+				<span class="note-name" data-note-name="${noteName}">${noteName}</span>
 			</label>
 		`;
 		return noteButton;
@@ -326,7 +323,7 @@ function buildEditor(container) {
 		beat[currentChord].notes = deduplicate([...existingNotes, changedNote]);
 		beat[currentChord].durationInBeats = noteDuration;
 		checkbox.dataset.selectedDuration = noteDuration;
-		noteNameContainer.innerText = `${noteName}(${noteDuration})`;
+		noteNameContainer.textContent = `${noteName}(${noteDuration})`;
 	}
 
 	function uncheckNoteCheckbox(checkbox, noteNameContainer) {
@@ -337,7 +334,7 @@ function buildEditor(container) {
 		const existingNotes = [...beat[currentChord].notes];
 		beat[currentChord].notes = existingNotes.filter(note => note !== changedNote);
 		songBeats[beatNumber] = removeEmptyNonRestChords(beat);
-		noteNameContainer.innerText = noteName;
+		noteNameContainer.textContent = noteName;
 	}
 
 	function deduplicate(array) {
@@ -399,7 +396,7 @@ function buildEditor(container) {
 		const duration = chord.durationInBeats;
 		checkbox.checked = true;
 		checkbox.dataset.selectedDuration = duration;
-		label.innerText = `${noteName}(${duration})`;
+		label.textContent = `${noteName}(${duration})`;
 	}
 
 	function setTempo(tempo) {
@@ -424,6 +421,8 @@ function buildEditor(container) {
 	}
 
 	function play() {
+		if (isPlaying) { return; }
+		isPlaying = true;
 		clearInterval(interval);
 		interval = setInterval(playNextBeat, secondsPerBeat * 1000);
 	}
@@ -444,9 +443,21 @@ function buildEditor(container) {
 	}
 
 	function pause() {
+		isPlaying = false;
 		clearInterval(interval);
 	}
+	function togglePlayPause(button) {
+		if (isPlaying) {
+			pause();
+			button.textContent = 'Play';
+		}
+		else {
+			play();
+			button.textContent = 'Pause';
+		}
+	}
 	function stop() {
+		isPlaying = false;
 		clearInterval(interval);
 		clearHighlightedColumn();
 		currentBeat = 0;
@@ -460,23 +471,21 @@ function buildEditor(container) {
 	}
 
 	function attachListeners() {
-		document.querySelector('.play').addEventListener('click', () => {
-			play();
-		});
-		document.querySelector('.pause').addEventListener('click', () => {
-			pause();
+		document.querySelector('.play').addEventListener('click', function() {
+			togglePlayPause(this);
 		});
 		document.querySelector('.stop').addEventListener('click', () => {
 			stop();
 		});
 		document.querySelector('.clear').addEventListener('click', () => {
+			if (isPlaying) { pause(); }
 			const confirmation = confirm('Are you sure you want to erase the song?');
 			if (confirmation) { clearSong(); }
 		});
 		document.querySelector('.export').addEventListener('click', function() {
 			exportToClipboard();
-			this.innerText = 'Copied!';
-			setTimeout(() => { this.innerText = 'Export'; }, 1000);
+			this.textContent = 'Copied!';
+			setTimeout(() => { this.textContent = 'Export'; }, 1000);
 		});
 		document.querySelector('.note-duration').addEventListener('input', function() {
 			noteDuration = Number(this.value);
@@ -488,15 +497,19 @@ function buildEditor(container) {
 			updateSongLength(this.value);
 		});
 		document.querySelector('.sample-minuet').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(minuetInG);
 		});
 		document.querySelector('.sample-smash').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(smash);
 		});
 		document.querySelector('.sample-smash-extra').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(smashExtra);
 		});
 		document.querySelector('.sample-big-shot').addEventListener('click', function() {
+			if (isPlaying) { stop(); }
 			setSong(bigShot);
 		});
 		window.addEventListener('resize', updateColumnsPerPage);
@@ -507,7 +520,7 @@ function buildEditor(container) {
 	}
 
 	function init() {
-		renderBoard({ columnCount: beatCount });
+		setSong({ secondsPerBeat, beats: songBeats });
 		updateColumnsPerPage();
 		attachListeners();
 	}
@@ -525,8 +538,7 @@ function buildEditor(container) {
 	};
 }
 
-const editor = buildEditor(document.querySelector('.editor'));
-editor.setSong(minuetInG);
+const editor = buildEditor(document.querySelector('.editor'), minuetInG);
 
 </script>
 </body>
