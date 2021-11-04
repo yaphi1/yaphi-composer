@@ -4,27 +4,113 @@
 <title>Song Editor</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
 <style>
+html {
+	overflow: hidden;
+}
+body {
+	/* sizes */
+	--site-gutter: min(60px, 6vw);
+	--column-width: 50px;
+	--column-divider: 1px solid var(--border-color);
+
+	margin: 0px;
+	transition: opacity 0.5s;
+	opacity: 0;
+	background-color: var(--background-primary);
+}
+.theme--light {
+	--text-color: #444;
+	--text-color-secondary: #444;
+	--background-primary: #fff;
+	--border-color: #eee;
+	--border-color-secondary: #ccc;
+	--selected-note-color: gold;
+	--hovered-note-bg-color: #0098db;
+	--hovered-note-fg-color: #fff;
+	--column-hover-background-color: #fafafa;
+	--column-highlighted-background-color: #eee;
+	--button-hover-bg: #ddd;
+	--input-border-color: #aaa;
+}
+.theme--dark {
+	--text-color: #eaeaea;
+	--text-color-secondary: #94a1b2;
+	--background-primary: #16161a;
+	--border-color: #36363a;
+	--border-color-secondary: #72757e;
+	--selected-note-color: #7f5af0;
+	--hovered-note-bg-color: #0098db;
+	--hovered-note-fg-color: #fff;
+	--column-hover-background-color: #26262a;
+	--column-highlighted-background-color: #36363a;
+	--button-hover-bg: #333;
+	--input-border-color: #aaa;
+}
+body, input, button {
+	font-family: 'Montserrat', sans-serif;
+	font-weight: 400;
+	color: var(--text-color);
+}
+header {
+	padding: 0px var(--site-gutter);
+}
+h1 {
+	font-size: clamp(30px, 6vw, 60px);
+	margin: 40px 0px 10px;
+	font-weight: 200;
+}
+.editor {
+	border: 1px solid var(--border-color);
+	border-left: none;
+	border-right: none;
+}
 .board {
-	display: flex;
 	overflow: scroll;
-	padding-bottom: 14px;
+	padding-left: var(--site-gutter);
+	padding-top: 20px;
+	height: calc(85vh - 200px);
+}
+.note-buttons,
+.column-buttons {
+	display: flex;
 }
 .column {
 	padding: 0px 0px;
-	border-right: 1px solid #ddd;
+	border-left: var(--column-divider);
 	transition: all 0.2s;
 }
 .column:hover {
-	background: #fafafa;
+	background: var(--column-hover-background-color);
 }
 .column--highlighted {
-	background: #eee;
+	background: var(--column-highlighted-background-color);
+}
+.column-buttons {
+	position: sticky;
+	bottom: 0px;
+	width: max-content;
+	padding-bottom: 15px;
+	background: var(--background-primary);
+}
+.column-button-container {
+	border-left: 1px solid var(--border-color-secondary);
 }
 .column-button {
 	cursor: pointer;
-	width: 100%;
+	width: var(--column-width);
 	box-sizing: border-box;
+	border: none;
+	background: var(--border-color);
+	display: block;
+	padding: 2px;
+	font-size: 14px;
+}
+.column-button:hover {
+	background: var(--button-hover-bg);
 }
 .note-name {
 	display: block;
@@ -32,10 +118,11 @@
 	border-radius: 3px;
 	cursor: pointer;
 	transition: all 0.2s;
-	font-size: 15px;
+	font-size: 14px;
 	white-space: nowrap;
 	box-sizing: border-box;
-	width: 50px;
+	width: var(--column-width);
+	color: var(--text-color-secondary);
 }
 .note-name-checkbox {
 	position: absolute;
@@ -44,49 +131,96 @@
 	pointer-events: none;
 }
 .note-name-checkbox:checked + .note-name {
-	background: gold;
+	background: var(--selected-note-color);
+	color: var(--text-color-primary);
 }
 .note-name:hover {
-	background: #0098db;
+	background: var(--hovered-note-bg-color);
+	color: var(--hovered-note-fg-color);
 }
 .controls {
-	background-color: #fff;
-	position: sticky;
-	bottom: 0;
+	padding: 0px var(--site-gutter);
+	font-size: 14px;
+}
+.control-button,
+.sample-song-button {
+	border: none;
+	border-radius: 3px;
+	background: var(--border-color);
+	padding: 8px 22px;
+	box-sizing: border-box;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+}
+.control-button {
+	min-width: 150px;
+}
+.control-button:hover,
+.sample-song-button:hover {
+	background: var(--button-hover-bg);
+}
+.control-buttons {
 	padding: 10px 0px;
 }
-#exporter {
-	position: absolute;
-	left: -9999999px;
+.control-inputs {
+	padding-bottom: 10px;
+}
+.sample-songs {
+	padding-bottom: 10px;
 }
 input[type="number"] {
 	width: 50px;
+	border: 1px solid var(--input-border-color);
+	padding: 2px 4px;
+	border-radius: 3px;
+	margin-right: 10px;
+	background-color: var(--background-primary);
+}
+
+#exporter {
+	position: absolute;
+	left: -9999999px;
+	top: 0px;
 }
 </style>
 </head>
-<body>
+<body class="theme--dark">
+
+<header>
+	<h1>Composer</h1>
+</header>
 
 <div class="editor">
 </div>
+
 <div class="controls">
-	<button class="play">Play</button>
-	<button class="stop">Stop</button>
-	<button class="clear">Clear</button>
-	<button class="export">Export</button>
-	<div>
-		Note duration:
-		<input type="number" class="note-duration" value="1" step="0.5" min="0" autocomplete="off">
-		Seconds per beat:
-		<input type="number" class="seconds-per-beat" value="0.2" step="0.05" min="0.05" autocomplete="off">
-		Song length (in beats):
-		<input type="number" class="song-length" value="50" step="1" min="1" autocomplete="off">
+	<div class="control-buttons">
+		<button class="control-button play">Play</button>
+		<button class="control-button stop">Stop</button>
+		<button class="control-button clear">Clear</button>
+		<button class="control-button export">Export</button>
 	</div>
-	<div>
+	<div class="control-inputs">
+		<label class="control-input-label">
+			Note duration:
+			<input type="number" class="note-duration" value="1" step="0.5" min="0" autocomplete="off">
+		</label>
+		<label class="control-input-label">
+			Seconds per beat:
+			<input type="number" class="seconds-per-beat" value="0.2" step="0.05" min="0.05" autocomplete="off">
+		</label>
+		<label class="control-input-label">
+			Song length (in beats):
+			<input type="number" class="song-length" value="50" step="1" min="1" autocomplete="off">
+		</label>
+	</div>
+	<div class="sample-songs">
 		Sample songs:
-		<button class="sample-minuet">Minuet in G</button>
-		<button class="sample-smash">Smash</button>
-		<button class="sample-smash-extra">Smash Extra</button>
-		<button class="sample-big-shot">Big Shot</button>
+		<button class="sample-song-button sample-minuet">Minuet in G</button>
+		<button class="sample-song-button sample-smash">Smash</button>
+		<button class="sample-song-button sample-smash-extra">Smash Extra</button>
+		<button class="sample-song-button sample-big-shot">Big Shot</button>
 	</div>
 </div>
 
@@ -99,8 +233,9 @@ input[type="number"] {
 <script src="./songs/smashExtra.js"></script>
 <script src="./songs/bigShot.js"></script>
 <script>
-
-
+setTimeout(() => {
+	document.body.style.opacity = 1;
+}, 500);
 
 function buildEditor(container, optionalSongImport) {
 	const board = createBoard();
@@ -186,7 +321,10 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function renderBoard({ columnCount }) {
-		board.innerHTML = buildColumns(columnCount);
+		board.innerHTML = `
+			${buildNoteButtons(columnCount)}
+			${buildColumnButtons(columnCount)}
+		`;
 		storeLatestColumnNodes();
 		attachBoardInteractions();
 	}
@@ -197,7 +335,7 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function attachCheckboxInteractions() {
-		board.addEventListener('change', (e) => {
+		board.querySelector('.note-buttons').addEventListener('change', (e) => {
 			const checkbox = e.target;
 			const noteNameContainer = e.target.parentElement.querySelector('.note-name');
 			toggleNoteCheckbox(checkbox, noteNameContainer);
@@ -205,7 +343,7 @@ function buildEditor(container, optionalSongImport) {
 	}
 
 	function attachColumnButtonInteractions() {
-		board.addEventListener('click', (e) => {
+		board.querySelector('.column-buttons').addEventListener('click', (e) => {
 			const clickedElement = e.target;
 			const isColumnButton = clickedElement.classList.contains('column-button');
 			if (isColumnButton) {
@@ -219,12 +357,17 @@ function buildEditor(container, optionalSongImport) {
 		columnNodes = board.querySelectorAll('.column');
 	}
 
-	function buildColumns(columnCount) {
+	function buildNoteButtons(columnCount) {
 		const columns = [];
 		for (let i=0; i<columnCount; i++) {
 			columns.push(buildColumn(notes, i));
 		}
-		return columns.join('');
+		const noteButtons = `
+			<div class="note-buttons">
+				${columns.join('')}
+			</div>
+		`;
+		return noteButtons;
 	}
 
 	function clearSong() {
@@ -250,11 +393,23 @@ function buildEditor(container, optionalSongImport) {
 		});
 	}
 
+	function buildColumnButtons(columnCount) {
+		const columnButtons = [];
+		for (let columnNumber=0; columnNumber<columnCount; columnNumber++) {
+			columnButtons.push(buildColumnButton(columnNumber));
+		}
+		const columnButtonsContainer = `
+			<div class="column-buttons">
+				${columnButtons.join('')}
+			</div>
+		`;
+		return columnButtonsContainer;
+	}
+
 	function buildColumn(notes, columnNumber) {
 		const column = `
 			<div class="column" data-column-number="${columnNumber}">
 				${placeNotesInColumn(notes, columnNumber)}
-				${buildColumnButton(columnNumber)}
 			</div>
 		`;
 		return column;
@@ -282,9 +437,11 @@ function buildEditor(container, optionalSongImport) {
 
 	function buildColumnButton(columnNumber) {
 		const columnButton = `
-			<button class="column-button" data-column-number="${columnNumber}">
-				${columnNumber}
-			</button>
+			<div class="column-button-container">
+				<button class="column-button" data-column-number="${columnNumber}">
+					${columnNumber + 1}
+				</button>
+			</div>
 		`;
 		return columnButton;
 	}
@@ -367,9 +524,7 @@ function buildEditor(container, optionalSongImport) {
 		beatCount = copyOfSong.beats.length;
 
 		renderBoard({ columnCount: copyOfSong.beats.length });
-		copyOfSong.beats.forEach((beat, i) => {
-			songBeats[i] = beat;
-		});
+		songBeats = copyOfSong.beats;
 
 		songBeats.forEach((beat, beatNumber) => {
 			prepareBeat(beat, beatNumber, columnNodes);
