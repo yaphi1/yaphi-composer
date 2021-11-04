@@ -521,7 +521,7 @@ function buildEditor(container, optionalSongImport) {
 		clearSong();
 		const copyOfSong = JSON.parse(JSON.stringify(importedSong));
 		setTempo(copyOfSong.secondsPerBeat);
-		beatCount = copyOfSong.beats.length;
+		setBeatCount(copyOfSong.beats.length);
 
 		renderBoard({ columnCount: copyOfSong.beats.length });
 		songBeats = copyOfSong.beats;
@@ -557,6 +557,11 @@ function buildEditor(container, optionalSongImport) {
 	function setTempo(tempo) {
 		secondsPerBeat = tempo;
 		document.querySelector('.seconds-per-beat').value = tempo;
+	}
+
+	function setBeatCount(songLength) {
+		beatCount = songLength;
+		document.querySelector('.song-length').value = songLength;
 	}
 
 	function exportToClipboard() {
