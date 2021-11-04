@@ -858,42 +858,84 @@ const smashExtra = {
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"E3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"G3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"A3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"C#4"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"A3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"G3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
 			{
 				"notes": [],
 				"durationInBeats": 1
+			},
+			{
+				"notes": [
+					"E3"
+				],
+				"durationInBeats": 2
 			}
 		],
 		[
