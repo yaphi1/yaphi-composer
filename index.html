@@ -250,6 +250,7 @@ function buildEditor(container, optionalSongImport) {
 	let noteDuration = 1;
 	let columnNodes;
 	let columnsPerPage;
+	let isLoopOn = false;
 	const columnWidth = 50;
 
 	const sampler = new Tone.Sampler({
@@ -603,7 +604,8 @@ function buildEditor(container, optionalSongImport) {
 		currentBeat++;
 
 		if (currentBeat >= songBeats.length) {
-			stop();
+			if (isLoopOn) { currentBeat = 0; }
+			else { stop(); }
 		}
 	}
 
