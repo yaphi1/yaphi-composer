@@ -252,7 +252,7 @@ function buildEditor(container, optionalSongImport) {
 	let columnsPerPage;
 	const columnWidth = 50;
 
-	const sampler = new Tone.Sampler({
+	const piano = new Tone.Sampler({
 		urls: {
 			"A5": `A${5 + transpose}.mp3`,
 			"C5": `C${5 + transpose}.mp3`,
@@ -268,6 +268,29 @@ function buildEditor(container, optionalSongImport) {
 		release: 1,
 		baseUrl: "https://tonejs.github.io/audio/salamander/",
 	}).toDestination();
+
+	// test on localhost:8000 with: py -3 -m http.server
+	// guitar from https://freepats.zenvoid.org/ElectricGuitar/distorted-electric-guitar.html
+	const guitar = new Tone.Sampler({
+		urls: {
+			'A2': 'A2.wav',
+			'A3': 'A3.wav',
+			'A4': 'A4.wav',
+			'A5': 'A5.wav',
+			'C#3': 'Cs3.wav',
+			'C#4': 'Cs4.wav',
+			'C#5': 'Cs5.wav',
+			'C6': 'C6.wav',
+			'E2': 'E2.wav',
+			'F3': 'F3.wav',
+			'F4': 'F4.wav',
+			'F5': 'F5.wav',
+		},
+		release: 1,
+		baseUrl: "./samples/guitar_distorted/",
+	}).toDestination();
+
+	const sampler = guitar;
 
 	const notes = [
 		'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B',
