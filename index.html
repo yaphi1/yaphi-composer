@@ -244,6 +244,7 @@ function buildEditor(container, optionalSongImport) {
 	let secondsPerBeat = optionalSongImport?.secondsPerBeat || 0.2;
 	let interval;
 	let beatCount = optionalSongImport?.beats.length || 50;
+	let transpose = 0;
 	let octaves = [5, 4, 3, 2];
 	let songBeats = optionalSongImport?.beats || restBeats(beatCount);
 	let noteDuration = 1;
@@ -253,16 +254,16 @@ function buildEditor(container, optionalSongImport) {
 
 	const sampler = new Tone.Sampler({
 		urls: {
-			"A5": "A5.mp3",
-			"C5": "C5.mp3",
-			"A4": "A4.mp3",
-			"F#4": "Fs4.mp3",
-			"D#4": "Ds4.mp3",
-			"C4": "C4.mp3",
-			"F#3": "Fs3.mp3",
-			"C3": "C3.mp3",
-			"F#2": "Fs2.mp3",
-			"C2": "C2.mp3",
+			"A5": `A${5 + transpose}.mp3`,
+			"C5": `C${5 + transpose}.mp3`,
+			"A4": `A${4 + transpose}.mp3`,
+			"F#4": `Fs${4 + transpose}.mp3`,
+			"D#4": `Ds${4 + transpose}.mp3`,
+			"C4": `C${4 + transpose}.mp3`,
+			"F#3": `Fs${3 + transpose}.mp3`,
+			"C3": `C${3 + transpose}.mp3`,
+			"F#2": `Fs${2 + transpose}.mp3`,
+			"C2": `C${2 + transpose}.mp3`,
 		},
 		release: 1,
 		baseUrl: "https://tonejs.github.io/audio/salamander/",
